@@ -1,7 +1,7 @@
 import uuid
 from lambdarest import lambda_handler
 
-@lambda_handler.handle("get")
+@lambda_handler.handle("get", path="/api")
 def author(event):
     return "Powered by TEX Team technology"
 
@@ -23,7 +23,7 @@ def user_list(event):
 
 
 
-@lambda_handler.handle("get", path="/coucou")
+@lambda_handler.handle("get", path="/api/reg")
 def my_own(event):
     print(event)
     headers = event["headers"]

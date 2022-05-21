@@ -2,10 +2,15 @@ from .config import Conf
 
 from aws_cdk import (
     # Duration,
-    Stack,
+    Stack, BundlingOptions,
     aws_s3 as s3,
     aws_lambda as lambda_,
-    BundlingOptions
+    aws_route53 as route53,
+    aws_route53_targets as targets,
+    aws_cloudfront as cloudfront,
+    aws_cloudfront_origins as origins,
+    aws_apigateway as apigateway,
+    aws_certificatemanager as acm,
 )
 
 from constructs import Construct
@@ -13,10 +18,30 @@ from constructs import Construct
 
 class FrontendStack(Stack):
 
-    def __init__(self, scope: Construct, construct_id: str, *, conf: Conf, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, *, conf: Conf, api_gw: apigateway.RestApi,
+                 zone: route53.HostedZone, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        bucket = s3.Bucket(self, "frontend_file_hosting", bucket_name=f"{conf.app_prefix}-frontend-hosting")
+        certificate = acm.DnsValidatedCertificate(self,  f"{conf.app_prefix}-cf-certificate",
+                        domain_name=zone.zone_name,
+                        hosted_zone=zone, region="us-east-1")
+
+        bucket = s3.Bucket(self, f"{conf.app_prefix}-frontend-hosting",
+                           bucket_name=f"{conf.app_prefix}-frontend-hosting")
+        cf_distrib = cloudfront.Distribution(self, f"{conf.app_prefix}-dist",
+                                             domain_names=[zone.zone_name],
+                                             certificate=certificate,
+                                             default_behavior=cloudfront.BehaviorOptions(
+                                                 origin=origins.S3Origin(bucket)))
+        api_gw_domaine_name = f"{api_gw.rest_api_id}.execute-api.{self.region}.{self.url_suffix}"
+        cf_distrib.add_behavior("api/*",origin=origins.HttpOrigin(
+            domain_name=api_gw_domaine_name, origin_path=f"/{api_gw.deployment_stage.stage_name}",
+        ))
+
+        route53.ARecord(self, f"{conf.app_prefix}-cloudfront-alias",
+            zone=zone,
+            target= route53.RecordTarget.from_alias(targets.CloudFrontTarget(cf_distrib)))
+
 
 
 class BackendStack(Stack):
@@ -39,3 +64,27 @@ class BackendStack(Stack):
                                       handler="lambda_function.lambda_handler",
                                       layers=[api_layer]
                                       )
+        api_gw = apigateway.RestApi(self, f"{conf.app_prefix}-api-gw",
+                                    endpoint_types=[apigateway.EndpointType.REGIONAL])
+        api_gw.root.add_proxy(
+            default_integration=apigateway.LambdaIntegration(api_lambda),
+            any_method=True
+        )
+        self._api_gw = api_gw
+
+    @property
+    def api_gw(self) -> apigateway.RestApi:
+        return self._api_gw
+
+
+class DNSStack(Stack):
+
+    def __init__(self, scope: Construct, construct_id: str, *, conf: Conf, **kwargs) -> None:
+        super().__init__(scope, construct_id, **kwargs)
+
+        self._dns_zone = route53.PublicHostedZone(self, f"{conf.app_prefix}-dns-zone",
+                                            zone_name=conf.route53_domain)
+
+    @property
+    def zone(self) -> route53.HostedZone:
+        return self._dns_zone

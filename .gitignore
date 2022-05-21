@@ -10,6 +10,7 @@ __pycache__
 cdk.out
 
 .idea
+.DS_Store
 
 /config/*
 !/config/default.yaml
