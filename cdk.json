@@ -15,7 +15,7 @@
     ]
   },
   "context": {
-    "app_prefix": "vhi-qrmeet",
+    "env": "default",
     "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
     "@aws-cdk/core:stackRelativeExports": true,
     "@aws-cdk/aws-rds:lowercaseDbIdentifier": true,

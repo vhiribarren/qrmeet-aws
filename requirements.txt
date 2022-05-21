@@ -1,2 +1,4 @@
 aws-cdk-lib==2.24.1
 constructs>=10.0.0,<11.0.0
+pyyaml==6.0
+python-box==6.0.2

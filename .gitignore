@@ -10,3 +10,6 @@ __pycache__
 cdk.out
 
 .idea
+
+/config/*
+!/config/default.yaml
