@@ -63,7 +63,7 @@ class FrontendStack(Stack):
                         target=route53.RecordTarget.from_alias(targets.CloudFrontTarget(cf_distrib)))
 
         s3deploy.BucketDeployment(self, f"{conf.app_prefix}-s3-hosting-deploy",
-                                  sources=[s3deploy.Source.asset("frontend/build")],
+                                  sources=[s3deploy.Source.asset("frontend/public")],
                                   destination_bucket=bucket,
                                   distribution=cf_distrib,
                                   retain_on_delete=False)
