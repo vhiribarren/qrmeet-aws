@@ -3,7 +3,7 @@ def parse_cookies(headers: dict) -> dict:
     if headers is None:
         return parsed_cookie
     for (key, val) in headers.items():
-        if key.lowercase() == "cookie":
+        if key.lower() == "cookie":
             cookies = val.split(';')
             for cookie in cookies:
                 if "=" in cookie:

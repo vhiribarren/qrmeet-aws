@@ -14,8 +14,8 @@ def echo(event):
     return {"event": str(event)}
 
 
-@lambda_handler.handle("get", path="/api/meet/<id>")
-def meet_event(event):
+@lambda_handler.handle("get", path="/meet/<id>")
+def meet_event(event, id):
     print(event)
     headers = event["headers"]
     cookies = utils.parse_cookies(headers)

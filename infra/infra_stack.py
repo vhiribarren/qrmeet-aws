@@ -51,6 +51,13 @@ class FrontendStack(Stack):
                                     domain_name=api_gw_domaine_name,
                                     origin_path=f"/{api_gw.deployment_stage.stage_name}",
                                 ))
+        cf_distrib.add_behavior("meet/*",
+                                cache_policy=cloudfront.CachePolicy.CACHING_DISABLED,
+                                origin_request_policy=origin_req_policy,
+                                origin=origins.HttpOrigin(
+                                    domain_name=api_gw_domaine_name,
+                                    origin_path=f"/{api_gw.deployment_stage.stage_name}",
+                                ))
         route53.ARecord(self, f"{conf.app_prefix}-cloudfront-alias",
                         zone=zone,
                         target=route53.RecordTarget.from_alias(targets.CloudFrontTarget(cf_distrib)))
