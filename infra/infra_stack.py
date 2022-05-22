@@ -29,7 +29,7 @@ class FrontendStack(Stack):
 
         bucket = s3.Bucket(self, f"{conf.app_prefix}-frontend-hosting",
                            bucket_name=f"{conf.app_prefix}-frontend-hosting",
-                           website_index_document="index.html",
+                           #website_index_document="index.html",
                            removal_policy=RemovalPolicy.DESTROY)
 
         api_gw_domaine_name = f"{api_gw.rest_api_id}.execute-api.{self.region}.{self.url_suffix}"
