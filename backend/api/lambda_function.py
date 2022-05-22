@@ -1,37 +1,24 @@
 import uuid
+import utils
 from lambdarest import lambda_handler
+
 
 @lambda_handler.handle("get", path="/api")
 def author(event):
     return "Powered by TEX Team technology"
 
-@lambda_handler.handle("get", path="/api/echo")
+
+@lambda_handler.handle("get", path="/api/debug")
 def echo(event):
     print(event)
     return {"event": str(event)}
 
-def register_name(event):
-    pass
 
-
+@lambda_handler.handle("get", path="/api/meet/<id>")
 def meet_event(event):
-    pass
-
-
-def board_list(event):
-    pass
-
-
-def user_list(event):
-    pass
-
-
-
-@lambda_handler.handle("get", path="/api/reg")
-def my_own(event):
     print(event)
     headers = event["headers"]
-    cookies = parse_cookies(headers)
+    cookies = utils.parse_cookies(headers)
     print(cookies)
     meet = cookies.get("meet", str(uuid.uuid4()))
     return {
@@ -44,21 +31,16 @@ def my_own(event):
     }
 
 
+@lambda_handler.handle("post", path="/api/register")
+def register_name(event):
+    pass
 
-def parse_cookies(headers: dict):
-    parsed_cookie = {}
-    if headers is None:
-        return parsed_cookie
-    for (key, val) in headers.items():
-        if key.lowercase() == "cookie":
-            cookies = val.split(';')
-            for cookie in cookies:
-                if "=" in cookie:
-                    parts = cookie.split("=")
-                    parsed_cookie[parts[0]] = parts[1]
-                else:
-                    parsed_cookie[cookie.strip()] = ''
-            break
-    else:
-        print("No cookie to parse")
-    return parsed_cookie
+
+@lambda_handler.handle("get", path="/api/ranking")
+def board_list(event):
+    return []
+
+
+@lambda_handler.handle("get", path="/api/my_contacts")
+def user_list(event):
+    return []
