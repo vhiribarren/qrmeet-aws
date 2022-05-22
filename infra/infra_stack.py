@@ -2,7 +2,7 @@ from .config import Conf
 
 from aws_cdk import (
     # Duration,
-    Stack, BundlingOptions,
+    Stack, BundlingOptions, RemovalPolicy,
     aws_s3 as s3,
     aws_lambda as lambda_,
     aws_route53 as route53,
@@ -11,6 +11,7 @@ from aws_cdk import (
     aws_cloudfront_origins as origins,
     aws_apigateway as apigateway,
     aws_certificatemanager as acm,
+    aws_s3_deployment as s3deploy,
 )
 
 from constructs import Construct
@@ -27,23 +28,38 @@ class FrontendStack(Stack):
                                                   hosted_zone=zone, region="us-east-1")
 
         bucket = s3.Bucket(self, f"{conf.app_prefix}-frontend-hosting",
-                           bucket_name=f"{conf.app_prefix}-frontend-hosting")
+                           bucket_name=f"{conf.app_prefix}-frontend-hosting",
+                           website_index_document="index.html",
+                           removal_policy=RemovalPolicy.DESTROY)
+
+        api_gw_domaine_name = f"{api_gw.rest_api_id}.execute-api.{self.region}.{self.url_suffix}"
+        origin_req_policy = cloudfront.OriginRequestPolicy(self,
+                                                           f"{conf.app_prefix}-origin-req-policy",
+                                                           origin_request_policy_name=f"{conf.app_prefix}-origin-req-policy",
+                                                           query_string_behavior=cloudfront.OriginRequestQueryStringBehavior.all(),
+                                                           cookie_behavior=cloudfront.OriginRequestCookieBehavior.all())
         cf_distrib = cloudfront.Distribution(self, f"{conf.app_prefix}-dist",
                                              domain_names=[zone.zone_name],
                                              certificate=certificate,
+                                             default_root_object="index.html",
                                              default_behavior=cloudfront.BehaviorOptions(
                                                  origin=origins.S3Origin(bucket)))
-        api_gw_domaine_name = f"{api_gw.rest_api_id}.execute-api.{self.region}.{self.url_suffix}"
         cf_distrib.add_behavior("api/*",
                                 cache_policy=cloudfront.CachePolicy.CACHING_DISABLED,
+                                origin_request_policy=origin_req_policy,
                                 origin=origins.HttpOrigin(
                                     domain_name=api_gw_domaine_name,
                                     origin_path=f"/{api_gw.deployment_stage.stage_name}",
                                 ))
-
         route53.ARecord(self, f"{conf.app_prefix}-cloudfront-alias",
                         zone=zone,
                         target=route53.RecordTarget.from_alias(targets.CloudFrontTarget(cf_distrib)))
+
+        s3deploy.BucketDeployment(self, f"{conf.app_prefix}-s3-hosting-deploy",
+                                  sources=[s3deploy.Source.asset("frontend/build")],
+                                  destination_bucket=bucket,
+                                  distribution=cf_distrib,
+                                  retain_on_delete=False)
 
 
 class BackendStack(Stack):
@@ -61,6 +77,7 @@ class BackendStack(Stack):
                                          ))
 
         api_lambda = lambda_.Function(self, f"{conf.app_prefix}-api-lambda",
+                                      function_name=f"{conf.app_prefix}-api-lambda",
                                       code=lambda_.Code.from_asset("backend/api"),
                                       runtime=lambda_.Runtime.PYTHON_3_9,
                                       handler="lambda_function.lambda_handler",

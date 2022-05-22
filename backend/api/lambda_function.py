@@ -5,6 +5,10 @@ from lambdarest import lambda_handler
 def author(event):
     return "Powered by TEX Team technology"
 
+@lambda_handler.handle("get", path="/api/echo")
+def echo(event):
+    print(event)
+    return {"event": str(event)}
 
 def register_name(event):
     pass
@@ -41,18 +45,20 @@ def my_own(event):
 
 
 
-def parse_cookies(headers):
+def parse_cookies(headers: dict):
     parsed_cookie = {}
     if headers is None:
         return parsed_cookie
-    if headers.get('cookie'):
-        cookies = headers['cookie'].split(';')
-        for cookie in cookies:
-            if "=" in cookie:
-                parts = cookie.split("=")
-                parsed_cookie[parts[0]] = parts[1]
-            else:
-                parsed_cookie[cookie.strip()] = ''
+    for (key, val) in headers.items():
+        if key.lowercase() == "cookie":
+            cookies = val.split(';')
+            for cookie in cookies:
+                if "=" in cookie:
+                    parts = cookie.split("=")
+                    parsed_cookie[parts[0]] = parts[1]
+                else:
+                    parsed_cookie[cookie.strip()] = ''
+            break
     else:
         print("No cookie to parse")
     return parsed_cookie
