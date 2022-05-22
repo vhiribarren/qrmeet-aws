@@ -1,11 +1,40 @@
 <script>
-	export let name;
+	import { onMount } from 'svelte';
+	import conf from './conf.json';
+
+    const URL_PREFIX = conf.urlPrefix;
+
+    let qrcodeElement;
+    let qrcodeContent;
+    let qrcodeGenerator;
+
+	onMount(async () => {
+		qrcodeGenerator =  new QRCode(qrcodeElement);
+		displayNewCode();
+	});
+
+    function displayNewCode() {
+        qrcodeGenerator.clear();
+        qrcodeContent = generateNewUrl();
+        qrcodeGenerator.makeCode(qrcodeContent);
+    }
+
+    function generateNewUrl() {
+        return URL_PREFIX + base62(12);
+    }
+
 </script>
 
+
 <main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
+	<h1>QR Meet Generator</h1>
+	<div id="qrcode" bind:this={qrcodeElement}></div>
+	<p>{qrcodeContent}</p>
+	<button on:click={displayNewCode}>
+	    Generate New QR Code
+    </button>
 </main>
+
 
 <style>
 	main {
@@ -14,6 +43,13 @@
 		max-width: 240px;
 		margin: 0 auto;
 	}
+
+    #qrcode {
+        margin-left: 200px;
+        margin-right: auto;
+        display: inline;
+        text-align: center;
+    }
 
 	h1 {
 		color: #ff3e00;
