@@ -22,9 +22,9 @@ class FrontendStack(Stack):
                  zone: route53.HostedZone, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        certificate = acm.DnsValidatedCertificate(self,  f"{conf.app_prefix}-cf-certificate",
-                        domain_name=zone.zone_name,
-                        hosted_zone=zone, region="us-east-1")
+        certificate = acm.DnsValidatedCertificate(self, f"{conf.app_prefix}-cf-certificate",
+                                                  domain_name=zone.zone_name,
+                                                  hosted_zone=zone, region="us-east-1")
 
         bucket = s3.Bucket(self, f"{conf.app_prefix}-frontend-hosting",
                            bucket_name=f"{conf.app_prefix}-frontend-hosting")
@@ -34,14 +34,16 @@ class FrontendStack(Stack):
                                              default_behavior=cloudfront.BehaviorOptions(
                                                  origin=origins.S3Origin(bucket)))
         api_gw_domaine_name = f"{api_gw.rest_api_id}.execute-api.{self.region}.{self.url_suffix}"
-        cf_distrib.add_behavior("api/*",origin=origins.HttpOrigin(
-            domain_name=api_gw_domaine_name, origin_path=f"/{api_gw.deployment_stage.stage_name}",
-        ))
+        cf_distrib.add_behavior("api/*",
+                                cache_policy=cloudfront.CachePolicy.CACHING_DISABLED,
+                                origin=origins.HttpOrigin(
+                                    domain_name=api_gw_domaine_name,
+                                    origin_path=f"/{api_gw.deployment_stage.stage_name}",
+                                ))
 
         route53.ARecord(self, f"{conf.app_prefix}-cloudfront-alias",
-            zone=zone,
-            target= route53.RecordTarget.from_alias(targets.CloudFrontTarget(cf_distrib)))
-
+                        zone=zone,
+                        target=route53.RecordTarget.from_alias(targets.CloudFrontTarget(cf_distrib)))
 
 
 class BackendStack(Stack):
@@ -83,7 +85,7 @@ class DNSStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         self._dns_zone = route53.PublicHostedZone(self, f"{conf.app_prefix}-dns-zone",
-                                            zone_name=conf.route53_domain)
+                                                  zone_name=conf.route53_domain)
 
     @property
     def zone(self) -> route53.HostedZone:

@@ -1,3 +1,2 @@
 app_prefix: "vhi-qrmeet-default"
-with_route53: False
 route53_domain: null
