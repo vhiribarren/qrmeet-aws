@@ -1,2 +1,3 @@
 app_prefix: "vhi-qrmeet-default"
 route53_domain: null
+meet_redirect_url: null

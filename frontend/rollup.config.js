@@ -7,7 +7,7 @@ import { terser } from 'rollup-plugin-terser';
 import css from 'rollup-plugin-css-only';
 
 const production = !process.env.ROLLUP_WATCH;
-const svelteFolders = [".", "alt"]
+const svelteFolders = [".", "publish", "gen_storage"]
 
 function serve() {
 	let server;

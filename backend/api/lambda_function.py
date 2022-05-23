@@ -1,3 +1,4 @@
+import os
 import uuid
 import utils
 from lambdarest import lambda_handler
@@ -30,6 +31,24 @@ def meet_event(event, id):
         'body': meet
     }
 
+@lambda_handler.handle("get", path="/api/publish")
+def publish_event(event):
+    params = event.get("queryStringParameters") or {}
+    meet_param = params.get("meet")
+    from_param = params.get("from")
+    if from_param:
+        print(f"{from_param} scanned {meet_param}")
+        return {
+            'statusCode': 200
+        }
+    else:
+        print(f"Someone scanned {meet_param} but no 'from', redirecting...")
+        return {
+            'statusCode': 302,
+            'headers': {
+                'Location': f"{os.environ['MEET_REDIRECT_URL']}?meet={meet_param}",
+            },
+        }
 
 @lambda_handler.handle("post", path="/api/register")
 def register_name(event):

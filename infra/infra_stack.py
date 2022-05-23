@@ -88,7 +88,8 @@ class BackendStack(Stack):
                                       code=lambda_.Code.from_asset("backend/api"),
                                       runtime=lambda_.Runtime.PYTHON_3_9,
                                       handler="lambda_function.lambda_handler",
-                                      layers=[api_layer]
+                                      layers=[api_layer],
+                                      environment={"MEET_REDIRECT_URL": conf.meet_redirect_url}
                                       )
         api_gw = apigateway.RestApi(self, f"{conf.app_prefix}-api-gw",
                                     endpoint_types=[apigateway.EndpointType.REGIONAL])

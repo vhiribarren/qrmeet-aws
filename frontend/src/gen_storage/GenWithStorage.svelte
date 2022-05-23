@@ -1,8 +1,8 @@
 <script>
 	import { onMount } from 'svelte';
-	import conf from './conf.json';
+	import conf from '../conf.json';
 
-    const URL_PREFIX = conf.urlPrefixWithCookies;
+    const URL_PREFIX = conf.urlPrefixWithStorage;
 
     let qrcodeElement;
     let qrcodeContent;
@@ -20,14 +20,14 @@
     }
 
     function generateNewUrl() {
-        return URL_PREFIX + base62(12);
+        return `${URL_PREFIX}?meet=${base62(12)}`;
     }
 
 </script>
 
 
 <main>
-	<h1>QR Meet Generator</h1>
+	<h1>QR Meet Generator for Storage</h1>
 	<div id="qrcode" bind:this={qrcodeElement}></div>
 	<p>{qrcodeContent}</p>
 	<button on:click={displayNewCode}>
