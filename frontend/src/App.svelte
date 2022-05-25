@@ -1,38 +1,55 @@
 <script>
-	import { onMount } from 'svelte';
-	import conf from './conf.json';
+import { v4 as uuidv4 } from 'uuid';
+import { detectIncognito } from "detect-incognito";
+import conf from './conf.json';
 
-    const URL_PREFIX = conf.urlPrefixWithCookies;
 
-    let qrcodeElement;
-    let qrcodeContent;
-    let qrcodeGenerator;
+const KEYSTORE_LOCAL_ID = "qrmeet:localId";
 
-	onMount(async () => {
-		qrcodeGenerator =  new QRCode(qrcodeElement);
-		displayNewCode();
-	});
+const urlParams = new URLSearchParams(window.location.search);
+const meetParam = urlParams.get('meet');
 
-    function displayNewCode() {
-        qrcodeGenerator.clear();
-        qrcodeContent = generateNewUrl();
-        qrcodeGenerator.makeCode(qrcodeContent);
-    }
 
-    function generateNewUrl() {
-        return URL_PREFIX + base62(12);
-    }
+let fetchPromise;
+let privateModePromise = detectIncognito();
+let localId = localStorage.getItem(KEYSTORE_LOCAL_ID);
 
+
+if (! localId) {
+    localId = uuidv4();
+    localStorage.setItem(KEYSTORE_LOCAL_ID, localId);
+}
+
+
+if (meetParam) {
+    fetchPromise = fetch(`${conf.urlMeet}?meet=${meetParam}&from=${localId}`);
+}
 </script>
 
 
 <main>
-	<h1>QR Meet Generator</h1>
-	<div id="qrcode" bind:this={qrcodeElement}></div>
-	<p>{qrcodeContent}</p>
-	<button on:click={displayNewCode}>
-	    Generate New QR Code
-    </button>
+
+    <h1>QR Meet</h1>
+
+    {#await privateModePromise then result}
+    <p>Private mode: {result.isPrivate}</p>
+    {/await}
+
+    <p>LocalId: {localId}</p>
+
+    {#if meetParam}
+    <p>MeetParam: {meetParam}</p>
+    <p>Publish status:
+    {#await fetchPromise}
+        ...waiting
+    {:then response}
+        you successfully encountered {meetParam}
+    {:catch error}
+        <span style="color: red">Failed to submit {meetParam}</span>
+    {/await}
+    </p>
+    {/if}
+
 </main>
 
 
@@ -43,13 +60,6 @@
 		max-width: 240px;
 		margin: 0 auto;
 	}
-
-    #qrcode {
-        margin-left: 200px;
-        margin-right: auto;
-        display: inline;
-        text-align: center;
-    }
 
 	h1 {
 		color: #ff3e00;

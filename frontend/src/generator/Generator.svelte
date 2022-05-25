@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import conf from '../conf.json';
 
-    const URL_PREFIX = conf.urlPrefixWithStorage;
+    const URL_PREFIX = conf.urlMeet;
 
     let qrcodeElement;
     let qrcodeContent;
@@ -20,14 +20,13 @@
     }
 
     function generateNewUrl() {
-        return `${URL_PREFIX}?meet=${base62(12)}`;
+        return `${URL_PREFIX}/${base62(12)}`;
     }
-
 </script>
 
 
 <main>
-	<h1>QR Meet Generator for Storage</h1>
+	<h1>QR Meet Generator</h1>
 	<div id="qrcode" bind:this={qrcodeElement}></div>
 	<p>{qrcodeContent}</p>
 	<button on:click={displayNewCode}>
@@ -45,10 +44,9 @@
 	}
 
     #qrcode {
-        margin-left: 200px;
-        margin-right: auto;
-        display: inline;
-        text-align: center;
+		display: flex;
+		align-items: center;
+		justify-content: center;
     }
 
 	h1 {

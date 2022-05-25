@@ -15,26 +15,9 @@ def echo(event):
     return {"event": str(event)}
 
 
-@lambda_handler.handle("get", path="/meet/<id>")
-def meet_event(event, id):
-    print(event)
-    headers = event["headers"]
-    cookies = utils.parse_cookies(headers)
-    print(cookies)
-    meet = cookies.get("meet", str(uuid.uuid4()))
-    return {
-        'statusCode': 200,
-        'headers': {
-            'Content-Type': "text/plain",
-             'Set-Cookie': 'meet='+meet+"; Expires=Wed, 21 Oct 2023 07:28:00 GMT",
-        },
-        'body': meet
-    }
-
-@lambda_handler.handle("get", path="/api/publish")
-def publish_event(event):
+@lambda_handler.handle("get", path="/meet/<meet_param>")
+def meet_event(event, meet_param):
     params = event.get("queryStringParameters") or {}
-    meet_param = params.get("meet")
     from_param = params.get("from")
     if from_param:
         print(f"{from_param} scanned {meet_param}")
@@ -50,16 +33,17 @@ def publish_event(event):
             },
         }
 
+
 @lambda_handler.handle("post", path="/api/register")
 def register_name(event):
     pass
 
 
-@lambda_handler.handle("get", path="/api/ranking")
+@lambda_handler.handle("get", path="/api/all_ranking")
 def board_list(event):
     return []
 
 
-@lambda_handler.handle("get", path="/api/my_contacts")
+@lambda_handler.handle("get", path="/api/my_ranking")
 def user_list(event):
     return []
