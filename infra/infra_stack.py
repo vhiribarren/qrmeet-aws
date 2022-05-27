@@ -1,4 +1,5 @@
 from .config import Conf
+from datetime import datetime
 
 from aws_cdk import (
     # Duration,
@@ -12,25 +13,81 @@ from aws_cdk import (
     aws_apigateway as apigateway,
     aws_certificatemanager as acm,
     aws_s3_deployment as s3deploy,
+    aws_ssm as ssm,
+    aws_iam as iam,
+    custom_resources as cr,
 )
 
 from constructs import Construct
 
 
+class EdgeStack(Stack):
+
+    def __init__(self, scope: Construct, construct_id: str, *, conf: Conf, **kwargs) -> None:
+        super().__init__(scope, construct_id, **kwargs)
+
+        edge_redirect = cloudfront.experimental.EdgeFunction(self, f"{conf.app_prefix}-lambda-edge-redirect",
+                                                                   function_name=f"{conf.app_prefix}-lambda-edge-redirect",
+                                                                   runtime=lambda_.Runtime.NODEJS_14_X,
+                                                                   handler="index.handler",
+                                                                   code=lambda_.Code.from_asset(
+                                                                       "backend/edge_redirect_index")
+                                                                   )
+        ssm_param = ssm.StringParameter(self, f"{conf.app_prefix}-param-edge-redirect-arn",
+                                        parameter_name=f"/{conf.app_prefix}/edge-redirect-arn",
+                                        string_value=edge_redirect.function_arn)
+
+        self._edge_redirect = edge_redirect
+
+    @property
+    def edge_redirect(self) -> lambda_.Function:
+        return self._edge_redirect
+
+
 class FrontendStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, *, conf: Conf, api_gw: apigateway.RestApi,
-                 zone: route53.HostedZone, **kwargs) -> None:
+                 zone: route53.HostedZone, edge: lambda_.Function, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
+
+        # https://stackoverflow.com/questions/68695026/cdk-possible-to-put-the-stack-created-for-edgefunction-resource-in-another-cro
+        get_edge_arn_custom_resource = cr.AwsCustomResource(self, "aws-custom",
+                                          on_update=cr.AwsSdkCall(
+                                              service="SSM",
+                                              action="getParameter",
+                                              parameters={
+                                                  "Name": f"/{conf.app_prefix}/edge-redirect-arn",
+                                              },
+                                              region="us-east-1",
+                                              physical_resource_id=cr.PhysicalResourceId.of(str(datetime.now()))
+                                          ),
+                                          policy=cr.AwsCustomResourcePolicy.from_statements([
+                                              iam.PolicyStatement(
+                                                  effect=iam.Effect.ALLOW,
+                                                  actions=["ssm:GetParameter*"],
+                                                  resources=[
+                                                      self.format_arn(
+                                                          service="ssm",
+                                                          region="us-east-1",
+                                                          resource="parameter",
+                                                          resource_name=f"{conf.app_prefix}/*"
+                                                      )
+                                                  ]
+                                              )
+                                          ])
+                                          )
+
+
+        edge_redirect_arn = get_edge_arn_custom_resource.get_response_field("Parameter.Value")
+
+        bucket = s3.Bucket(self, f"{conf.app_prefix}-frontend-hosting",
+                           bucket_name=f"{conf.app_prefix}-frontend-hosting",
+                           # website_index_document="index.html",
+                           removal_policy=RemovalPolicy.DESTROY)
 
         certificate = acm.DnsValidatedCertificate(self, f"{conf.app_prefix}-cf-certificate",
                                                   domain_name=zone.zone_name,
                                                   hosted_zone=zone, region="us-east-1")
-
-        bucket = s3.Bucket(self, f"{conf.app_prefix}-frontend-hosting",
-                           bucket_name=f"{conf.app_prefix}-frontend-hosting",
-                           #website_index_document="index.html",
-                           removal_policy=RemovalPolicy.DESTROY)
 
         api_gw_domaine_name = f"{api_gw.rest_api_id}.execute-api.{self.region}.{self.url_suffix}"
         origin_req_policy = cloudfront.OriginRequestPolicy(self,
@@ -43,7 +100,14 @@ class FrontendStack(Stack):
                                              certificate=certificate,
                                              default_root_object="index.html",
                                              default_behavior=cloudfront.BehaviorOptions(
-                                                 origin=origins.S3Origin(bucket)))
+                                                 origin=origins.S3Origin(bucket),
+                                                 edge_lambdas=[cloudfront.EdgeLambda(
+                                                     function_version=lambda_.Version.from_version_arn(self,
+                                                                                                         f"{conf.app_prefix}-lambda-edge-redirect",
+                                                                                                         edge_redirect_arn),
+                                                     event_type=cloudfront.LambdaEdgeEventType.VIEWER_REQUEST)]
+                                             )
+                                             )
         cf_distrib.add_behavior("api/*",
                                 cache_policy=cloudfront.CachePolicy.CACHING_DISABLED,
                                 origin_request_policy=origin_req_policy,
