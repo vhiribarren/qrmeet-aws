@@ -1,5 +1,6 @@
 from .config import Conf
 from datetime import datetime
+import subprocess
 
 from aws_cdk import (
     # Duration,
@@ -49,6 +50,10 @@ class FrontendStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, *, conf: Conf, api_gw: apigateway.RestApi,
                  zone: route53.HostedZone, edge: lambda_.Function, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
+
+        npm_command = f"QRMEET_CONFIG={conf.env} npm run build"
+        print(f"Building frontend with command: {npm_command}")
+        subprocess.run(npm_command, shell=True, cwd="frontend", check=True)
 
         # https://stackoverflow.com/questions/68695026/cdk-possible-to-put-the-stack-created-for-edgefunction-resource-in-another-cro
         get_edge_arn_custom_resource = cr.AwsCustomResource(self, "aws-custom",

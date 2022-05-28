@@ -12,4 +12,6 @@ class Conf(Box):
 
 def load(env: str) -> Conf:
     filename = os.path.join(CONFIG_DIR, env + ".yaml")
-    return typing.cast(Conf, Box.from_yaml(filename=filename, Loader=yaml.FullLoader))
+    box = Box.from_yaml(filename=filename, Loader=yaml.FullLoader)
+    box.env = env
+    return typing.cast(Conf, box)
