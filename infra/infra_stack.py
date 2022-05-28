@@ -154,7 +154,7 @@ class BackendStack(Stack):
 
         api_lambda = lambda_.Function(self, f"{conf.app_prefix}-api-lambda",
                                       function_name=f"{conf.app_prefix}-api-lambda",
-                                      code=lambda_.Code.from_asset("backend/api"),
+                                      code=lambda_.Code.from_asset("backend/api/src"),
                                       runtime=lambda_.Runtime.PYTHON_3_9,
                                       handler="lambda_function.lambda_handler",
                                       layers=[api_layer],

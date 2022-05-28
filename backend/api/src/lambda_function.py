@@ -9,12 +9,6 @@ def author(event):
     return "Powered by TEX Team technology"
 
 
-@lambda_handler.handle("get", path="/api/debug")
-def echo(event):
-    print(event)
-    return {"event": str(event)}
-
-
 @lambda_handler.handle("get", path="/meet/<meet_param>")
 def meet_event(event, meet_param):
     params = event.get("queryStringParameters") or {}
@@ -34,6 +28,11 @@ def meet_event(event, meet_param):
         }
 
 
+@lambda_handler.handle("get", path="/api/generate")
+def register_name(event):
+    pass
+
+
 @lambda_handler.handle("post", path="/api/register")
 def register_name(event):
     pass
@@ -47,3 +46,9 @@ def board_list(event):
 @lambda_handler.handle("get", path="/api/my_ranking")
 def user_list(event):
     return []
+
+
+@lambda_handler.handle("get", path="/api/debug")
+def echo(event):
+    print(event)
+    return {"event": str(event)}
