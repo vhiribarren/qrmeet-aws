@@ -1,7 +1,7 @@
 <script>
 import { v4 as uuidv4 } from 'uuid';
 import { detectIncognito } from "detect-incognito";
-import conf from './conf.js';
+import conf from "conf";
 
 
 const KEYSTORE_LOCAL_ID = "qrmeet:localId";

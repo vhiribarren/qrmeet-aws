@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	import conf from '../conf.js';
+	import conf from "conf";
 
     const URL_PREFIX = conf.url_meet;
 

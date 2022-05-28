@@ -3,11 +3,15 @@ import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import livereload from 'rollup-plugin-livereload';
 import yaml from '@rollup/plugin-yaml';
+import alias from '@rollup/plugin-alias';
 import { terser } from 'rollup-plugin-terser';
 import css from 'rollup-plugin-css-only';
 
 const production = !process.env.ROLLUP_WATCH;
+const qrmeetConfigName = process.env.QRMEET_CONFIG || "default";
+const qrmeetConfigFile = `../config/${qrmeetConfigName}.yaml`;
 const svelteFolders = [".", "ranking", "generator"]
+
 
 function serve() {
 	let server;
@@ -60,7 +64,13 @@ function svelteBuild(dir) {
 				dedupe: ['svelte']
 			}),
 			commonjs(),
-	
+
+            alias({
+				entries: [
+					{ find: 'conf', replacement: qrmeetConfigFile}
+				]
+			}),
+
 			// In dev mode, call `npm run start` once
 			// the bundle has been generated
 			!production && serve(),
