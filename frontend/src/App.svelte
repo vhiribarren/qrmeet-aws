@@ -1,7 +1,7 @@
 <script>
 import { v4 as uuidv4 } from 'uuid';
 import { detectIncognito } from "detect-incognito";
-import conf from './conf.json';
+import conf from './conf.js';
 
 
 const KEYSTORE_LOCAL_ID = "qrmeet:localId";
@@ -22,7 +22,7 @@ if (! localId) {
 
 
 if (meetParam) {
-    fetchPromise = fetch(`${conf.urlMeet}?meet=${meetParam}&from=${localId}`);
+    fetchPromise = fetch(`${conf.url_meet}?meet=${meetParam}&from=${localId}`);
 }
 </script>
 

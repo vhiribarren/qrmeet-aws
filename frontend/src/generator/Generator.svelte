@@ -1,8 +1,8 @@
 <script>
 	import { onMount } from 'svelte';
-	import conf from '../conf.json';
+	import conf from '../conf.js';
 
-    const URL_PREFIX = conf.urlMeet;
+    const URL_PREFIX = conf.url_meet;
 
     let qrcodeElement;
     let qrcodeContent;
