@@ -14,13 +14,13 @@ def test_valid_generated_meet_id(code_service):
 
 def test_invalid_modified_meet_id(code_service):
     mut_meet_id = list(code_service._generate_meet_id())
-    mut_meet_id[0] += 1
+    mut_meet_id[0] = chr(ord(mut_meet_id[0]) + 1)
     new_meet_id = "".join(mut_meet_id)
     assert not code_service._verify_meet_id(new_meet_id)
 
 
-def test_invalid_forged_meet_id(code_service):
-    meet_id = "BAD_MEET_ID"
+@pytest.mark.parametrize("meet_id", ["0", "BAD_MEET_ID", "123456789123456789123456789"])
+def test_invalid_forged_meet_id(code_service, meet_id):
     assert not code_service._verify_meet_id(meet_id)
 
 

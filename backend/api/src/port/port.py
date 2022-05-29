@@ -40,7 +40,7 @@ class MeetStore:
 
 class RankingStore:
 
-    @dataclass(frozen=True, kw_only=True)
+    @dataclass(frozen=True)
     class Score:
         phone_id: str
         score: int
