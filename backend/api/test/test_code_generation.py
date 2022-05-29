@@ -12,6 +12,12 @@ def test_valid_generated_meet_id(code_service):
     assert code_service._verify_meet_id(meet_id)
 
 
+def test_valid_known_working_meet_id(code_service):
+    """May break if current implementation change, but also fix the current implementation"""
+    meet_id = "3uOdP0Z1gQ4z1wV"
+    assert code_service._verify_meet_id(meet_id)
+
+
 def test_invalid_modified_meet_id(code_service):
     mut_meet_id = list(code_service._generate_meet_id())
     mut_meet_id[0] = chr(ord(mut_meet_id[0]) + 1)
@@ -19,7 +25,7 @@ def test_invalid_modified_meet_id(code_service):
     assert not code_service._verify_meet_id(new_meet_id)
 
 
-@pytest.mark.parametrize("meet_id", ["0", "BAD_MEET_ID", "123456789123456789123456789"])
+@pytest.mark.parametrize("meet_id", ["0", "BAD_MEET_ID", "123456789123456789123456789", "4uOdP0Z1gQ4z1wV"])
 def test_invalid_forged_meet_id(code_service, meet_id):
     assert not code_service._verify_meet_id(meet_id)
 
