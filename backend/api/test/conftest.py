@@ -1,4 +1,6 @@
+import os
 import sys
+from urllib.parse import urlparse, parse_qs
 from os.path import abspath, join, dirname
 
 import pytest
@@ -8,7 +10,9 @@ from moto import mock_dynamodb
 sys.path.insert(0, abspath((join(dirname(__file__), '../src'))))
 
 DYNAMO_TABLENAME_CODE = "test-table-code"
+DYNAMO_TABLENAME_MEET = "test-table-meet"
 
+MEET_URL_PREFIX = "https://example.com/meet"
 
 @pytest.fixture
 def handler():
@@ -16,34 +20,76 @@ def handler():
     return lambda_handler
 
 
+def _handler_request(handler, http_method: str, url_path: str, body: str = None):
+    parsed_url_path = urlparse(url_path)
+    query = parse_qs(parsed_url_path.query)
+    query = {k: v[0] for k, v in query.items()}
+    event = {
+        "httpMethod": http_method,
+        "resource": parsed_url_path.path,
+        "queryStringParameters": query,
+        "body": body,
+    }
+    return handler(event=event, context=None)
+
 @pytest.fixture
 def api_get(handler):
-    def req(url_path: str):
-        event = {
-            "httpMethod": "GET",
-            "resource": url_path,
-        }
-        return handler(event=event, context=None)
-    return req
-
+    return lambda url_path: _handler_request(handler, "GET", url_path)
 
 @pytest.fixture
 def api_post(handler):
-    def req(url_path: str, json_payload: str):
-        event = {
-            "httpMethod": "POST",
-            "resource": url_path,
-            "body": json_payload,
-        }
-        return handler(event=event, context=None)
-    return req
+    return lambda url_path, body: _handler_request(handler, "POST", url_path, body)
 
+@pytest.fixture(scope="session", autouse=True)
+def init_aws_env_var():
+    os.environ["AWS_DEFAULT_REGION"] = "eu-west-1"
 
-@pytest.fixture(autouse=False, scope="session")
+@pytest.fixture(scope="session", autouse=True)
+def init_lambda_env_var():
+    os.environ["CODE_STORE_TABLE_NAME"] = DYNAMO_TABLENAME_CODE
+    os.environ["MEET_URL_PREFIX"] = MEET_URL_PREFIX
+
+@pytest.fixture(autouse=True)
 def mock_boto():
     with mock_dynamodb():
         dynamo = boto3.resource("dynamodb")
-        # create table
+        dynamo.create_table(
+            TableName=DYNAMO_TABLENAME_CODE,
+            BillingMode="PAY_PER_REQUEST",
+            KeySchema=[{
+                "AttributeName": "meet_id",
+                "KeyType": "HASH"
+            }],
+            AttributeDefinitions=[{
+                "AttributeName": "meet_id",
+                "AttributeType": "S"
+            }]
+        )
+        dynamo.create_table(
+            TableName=DYNAMO_TABLENAME_MEET,
+            BillingMode="PAY_PER_REQUEST",
+            KeySchema=[{
+                "AttributeName": "phone_id",
+                "KeyType": "HASH"
+            }],
+            GlobalSecondaryIndexes=[{
+                "IndexName": "meet_id_index",
+                "KeySchema": [{
+                    "AttributeName": "meet_id",
+                    "KeyType": "HASH"
+                }],
+                "Projection": {
+                    "ProjectionType": "KEYS_ONLY"
+                }
+            }],
+            AttributeDefinitions=[{
+                "AttributeName": "phone_id",
+                "AttributeType": "S"
+            }, {
+                "AttributeName": "meet_id",
+                "AttributeType": "S"
+            }
+            ])
         yield
 
 
@@ -56,4 +102,4 @@ def code_store():
 @pytest.fixture
 def code_service(code_store):
     from uc.code_generation import CodeGeneratorService
-    return CodeGeneratorService(code_store)
+    return CodeGeneratorService(MEET_URL_PREFIX, code_store)

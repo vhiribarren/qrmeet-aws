@@ -22,7 +22,7 @@ if (! localId) {
 
 
 if (meetParam) {
-    fetchPromise = fetch(`${conf.url_meet}?meet=${meetParam}&from=${localId}`);
+    fetchPromise = fetch(`${conf.meet_url_prefix}?meet=${meetParam}&from=${localId}`);
 }
 </script>
 

@@ -1,7 +1,19 @@
 import os
 import uuid
 import utils
+
 from lambdarest import lambda_handler
+
+from uc.code_generation import CodeGeneratorService
+from adapter.code_store import DynamoCodeStore
+
+CODE_STORE_TABLE_NAME = os.environ["CODE_STORE_TABLE_NAME"]
+MEET_URL_PREFIX = os.environ["MEET_URL_PREFIX"]
+
+CODE_STORE = DynamoCodeStore(CODE_STORE_TABLE_NAME)
+CODE_SERVICE = CodeGeneratorService(MEET_URL_PREFIX, CODE_STORE)
+
+MAX_CODE_GENERATION_COUNT = 100
 
 
 @lambda_handler.handle("get", path="/api")
@@ -29,8 +41,17 @@ def meet_event(event, meet_param):
 
 
 @lambda_handler.handle("get", path="/api/generate")
-def register_name(event):
-    pass
+def generate_code(event):
+    params = event.get("queryStringParameters") or {}
+    count = params.get("count", 1)
+    try:
+        count = int(count)
+    except ValueError:
+        return "Bad parameter value", 400
+    if count >= MAX_CODE_GENERATION_COUNT or count < 1:
+        return "Bad parameter value", 400
+    urls = CODE_SERVICE.generate_meet_urls(count)
+    return urls
 
 
 @lambda_handler.handle("post", path="/api/register")

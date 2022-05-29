@@ -158,8 +158,11 @@ class BackendStack(Stack):
                                       runtime=lambda_.Runtime.PYTHON_3_9,
                                       handler="lambda_function.lambda_handler",
                                       layers=[api_layer],
-                                      environment={"MEET_REDIRECT_URL": conf.meet_redirect_url}
-                                      )
+                                      environment={
+                                          "MEET_REDIRECT_URL": conf.meet_redirect_url,
+                                          "CODE_STORE_TABLE_NAME": f"{conf.app_prefix}-code-table",
+                                          "MEET_URL_PREFIX": conf.meet_url_prefix,
+                                      })
         api_gw = apigateway.RestApi(self, f"{conf.app_prefix}-api-gw",
                                     endpoint_types=[apigateway.EndpointType.REGIONAL])
         api_gw.root.add_proxy(

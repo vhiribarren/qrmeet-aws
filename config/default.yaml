@@ -1,4 +1,4 @@
 app_prefix: "vhi-qrmeet-default"
 route53_domain: "example.com"
 meet_redirect_url: "https://example.com/"
-url_meet: "https://example.com/meet"
+meet_url_prefix: "https://example.com/meet"

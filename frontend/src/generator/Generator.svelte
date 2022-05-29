@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import conf from "conf";
 
-    const URL_PREFIX = conf.url_meet;
+    const URL_PREFIX = conf.meet_url_prefix;
 
     let qrcodeElement;
     let qrcodeContent;
