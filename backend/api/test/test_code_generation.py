@@ -46,6 +46,12 @@ def test_generated_meet_id_with_service_is_referenced_and_valid(code_service, co
         assert code_store.code_exists(meet_id)
 
 
+def test_valid_code_not_registered_is_invalid(code_service, code_store):
+    assert code_store.count_codes() == 0
+    meet_id = code_service._generate_meet_id()
+    assert not code_service.check_meet_id_validity(meet_id)
+
+
 # API
 #####
 
