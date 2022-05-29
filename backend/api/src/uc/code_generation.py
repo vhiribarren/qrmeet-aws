@@ -6,14 +6,20 @@ class CodeGeneratorService:
     def __init__(self, code_store: CodeStore):
         pass
 
-    def generate_meet_ids(self, count: int = 1) -> [str]:
+    def generate_meet_urls(self, count: int = 1) -> [str]:
         pass
 
     def check_meet_id_validity(self, meet_id:  str) -> bool:
         pass
 
+    def check_meet_url_validity(self, meet_url:  str) -> bool:
+        pass
+
+    def meet_id_from_url(self, meet_url: str) -> str:
+        pass
+
     @staticmethod
-    def _random_meet_id() -> str:
+    def _generate_meet_id() -> str:
         pass
 
     @staticmethod

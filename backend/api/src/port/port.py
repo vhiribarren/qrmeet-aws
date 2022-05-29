@@ -8,6 +8,8 @@ class CodeStore:
     def code_exists(self, meet_id) -> bool:
         raise NotImplementedError()
 
+    def count_codes(self) -> int:
+        raise NotImplementedError()
 
 class UserStore:
 
