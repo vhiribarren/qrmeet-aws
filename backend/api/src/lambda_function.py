@@ -1,17 +1,23 @@
 import os
+import json
 import uuid
 import utils
 
 from lambdarest import lambda_handler
 
 from uc.code_generation import CodeGeneratorService
+from uc.user_registration import UserRegistrationService, PhoneIdNotFoundException, InvalidMeetIdException
 from adapter.code_store import DynamoCodeStore
+from adapter.user_store import DynamoUserStore
 
 CODE_STORE_TABLE_NAME = os.environ["CODE_STORE_TABLE_NAME"]
+USER_STORE_TABLE_NAME = os.environ["USER_STORE_TABLE_NAME"]
 MEET_URL_PREFIX = os.environ["MEET_URL_PREFIX"]
 
 CODE_STORE = DynamoCodeStore(CODE_STORE_TABLE_NAME)
+USER_STORE = DynamoUserStore(USER_STORE_TABLE_NAME)
 CODE_SERVICE = CodeGeneratorService(MEET_URL_PREFIX, CODE_STORE)
+USER_SERVICE = UserRegistrationService(CODE_SERVICE, USER_STORE)
 
 MAX_CODE_GENERATION_COUNT = 100
 
@@ -54,9 +60,30 @@ def generate_code(event):
     return urls
 
 
-@lambda_handler.handle("post", path="/api/register")
+@lambda_handler.handle("post", path="/api/register/new")
 def register_name(event):
-    pass
+    request = json.loads(event["body"])
+    if "meet_id" not in request or "username" not in request:
+        return "Bad parameter value", 400
+    try:
+        phone_id = USER_SERVICE.register_user(request["meet_id"], request["username"])
+        return { "phone_id": phone_id}
+    except InvalidMeetIdException:
+        return "Bad parameter value", 400
+    except PhoneIdNotFoundException:
+        return "Bad parameter value", 404
+
+
+@lambda_handler.handle("post", path="/api/register/update")
+def update_name(event):
+    request = json.loads(event["body"])
+    if "phone_id" not in request or "username" not in request:
+        return "Bad parameter value", 400
+    try:
+        USER_SERVICE.update_user(request["phone_id"], request["username"])
+        return
+    except PhoneIdNotFoundException:
+        return "Bad parameter value", 404
 
 
 @lambda_handler.handle("get", path="/api/all_ranking")

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 class CodeStore:
 
     def register_code(self, meet_id):
@@ -11,9 +12,13 @@ class CodeStore:
     def count_codes(self) -> int:
         raise NotImplementedError()
 
+
 class UserStore:
 
     def register_user(self, phone_id, meet_id, name):
+        raise NotImplementedError()
+
+    def is_meet_id_used(self, meet_id) -> bool:
         raise NotImplementedError()
 
     def user_exists(self, phone_id) -> bool:

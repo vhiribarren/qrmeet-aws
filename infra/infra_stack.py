@@ -161,6 +161,7 @@ class BackendStack(Stack):
                                       environment={
                                           "MEET_REDIRECT_URL": conf.meet_redirect_url,
                                           "CODE_STORE_TABLE_NAME": f"{conf.app_prefix}-code-table",
+                                          "USER_STORE_TABLE_NAME": f"{conf.app_prefix}-user-table",
                                           "MEET_URL_PREFIX": conf.meet_url_prefix,
                                       })
         api_gw = apigateway.RestApi(self, f"{conf.app_prefix}-api-gw",

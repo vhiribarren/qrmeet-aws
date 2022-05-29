@@ -11,8 +11,10 @@ sys.path.insert(0, abspath((join(dirname(__file__), '../src'))))
 
 DYNAMO_TABLENAME_CODE = "test-table-code"
 DYNAMO_TABLENAME_MEET = "test-table-meet"
+DYNAMO_TABLENAME_USER = "test-table-user"
 
 MEET_URL_PREFIX = "https://example.com/meet"
+
 
 @pytest.fixture
 def handler():
@@ -32,22 +34,28 @@ def _handler_request(handler, http_method: str, url_path: str, body: str = None)
     }
     return handler(event=event, context=None)
 
+
 @pytest.fixture
 def api_get(handler):
     return lambda url_path: _handler_request(handler, "GET", url_path)
+
 
 @pytest.fixture
 def api_post(handler):
     return lambda url_path, body: _handler_request(handler, "POST", url_path, body)
 
+
 @pytest.fixture(scope="session", autouse=True)
 def init_aws_env_var():
     os.environ["AWS_DEFAULT_REGION"] = "eu-west-1"
 
+
 @pytest.fixture(scope="session", autouse=True)
 def init_lambda_env_var():
     os.environ["CODE_STORE_TABLE_NAME"] = DYNAMO_TABLENAME_CODE
+    os.environ["USER_STORE_TABLE_NAME"] = DYNAMO_TABLENAME_USER
     os.environ["MEET_URL_PREFIX"] = MEET_URL_PREFIX
+
 
 @pytest.fixture(autouse=True)
 def mock_boto():
@@ -66,7 +74,7 @@ def mock_boto():
             }]
         )
         dynamo.create_table(
-            TableName=DYNAMO_TABLENAME_MEET,
+            TableName=DYNAMO_TABLENAME_USER,
             BillingMode="PAY_PER_REQUEST",
             KeySchema=[{
                 "AttributeName": "phone_id",
@@ -100,6 +108,18 @@ def code_store():
 
 
 @pytest.fixture
+def user_store():
+    from adapter.user_store import DynamoUserStore
+    return DynamoUserStore(DYNAMO_TABLENAME_USER)
+
+
+@pytest.fixture
 def code_service(code_store):
     from uc.code_generation import CodeGeneratorService
     return CodeGeneratorService(MEET_URL_PREFIX, code_store)
+
+
+@pytest.fixture
+def user_service(code_service, user_store):
+    from uc.user_registration import UserRegistrationService
+    return UserRegistrationService(code_service, user_store)
