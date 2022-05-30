@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 
 class CodeStore:
@@ -12,22 +13,22 @@ class CodeStore:
     def count_codes(self) -> int:
         raise NotImplementedError()
 
+    def set_phone_id(self, meet_id, phone_id):
+        raise NotImplementedError()
+
+    def get_phone_id(self, meet_id) -> Optional[str]:
+        raise NotImplementedError()
+
 
 class UserStore:
 
     def register_user(self, phone_id, meet_id, name):
         raise NotImplementedError()
 
-    def is_meet_id_used(self, meet_id) -> bool:
-        raise NotImplementedError()
-
     def user_exists(self, phone_id) -> bool:
         raise NotImplementedError()
 
     def update_user_name(self, phone_id, name):
-        raise NotImplementedError()
-
-    def get_phone_id(self, meet_id) -> str:
         raise NotImplementedError()
 
 

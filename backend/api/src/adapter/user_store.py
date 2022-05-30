@@ -18,18 +18,18 @@ class DynamoUserStore(UserStore):
             }
         )
 
-    def is_meet_id_used(self, meet_id) -> bool:
+    def user_exists(self, phone_id) -> bool:
         result = self.client.get_item(
             TableName=self.table_name,
-            Key={'meet_id': {'S': meet_id}}
+            Key={'phone_id': {'S': phone_id}}
         )
         return "Item" in result
 
-    def user_exists(self, phone_id) -> bool:
-        raise NotImplementedError()
-
-    def update_user_name(self, phone_id, name):
-        raise NotImplementedError()
-
-    def get_phone_id(self, meet_id) -> str:
-        raise NotImplementedError()
+    def update_user_name(self, phone_id, username):
+        self.client.put_item(
+            TableName=self.table_name,
+            Item={
+                'phone_id': {'S': phone_id},
+                'username': {'S': username}
+            }
+        )

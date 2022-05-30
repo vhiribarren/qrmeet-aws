@@ -1,11 +1,12 @@
 import uuid
 
-from port.port import UserStore
+from port.port import UserStore, CodeStore
 from uc.code_generation import CodeGeneratorService
 
 
 class PhoneIdNotFoundException(Exception):
     pass
+
 
 class InvalidMeetIdException(Exception):
     pass
@@ -13,16 +14,18 @@ class InvalidMeetIdException(Exception):
 
 class UserRegistrationService:
 
-    def __init__(self, code_service: CodeGeneratorService, user_store: UserStore):
+    def __init__(self, code_service: CodeGeneratorService, user_store: UserStore, code_store: CodeStore):
         self.code_service = code_service
         self.user_store = user_store
+        self.code_store = code_store
 
     def register_user(self, meet_id: str, username: str) -> str:
         if not self.code_service.check_meet_id_validity(meet_id):
             raise InvalidMeetIdException("MeetId is invalid")
-        if self.user_store.is_meet_id_used(meet_id):
+        if self.code_store.get_phone_id(meet_id):
             raise InvalidMeetIdException("MeetId is already registered to someone else")
         phone_id = self._generate_phone_id()
+        self.code_store.set_phone_id(meet_id, phone_id)
         self.user_store.register_user(phone_id, meet_id, username)
         return phone_id
 
@@ -35,7 +38,7 @@ class UserRegistrationService:
         return self.user_store.user_exists(phone_id)
 
     def get_phone_id(self, meet_id: str) -> str:
-        return self.user_store.get_phone_id(meet_id)
+        return self.code_store.get_phone_id(meet_id)
 
     @staticmethod
     def _generate_phone_id() -> str:

@@ -1,6 +1,7 @@
 import boto3
 from datetime import datetime, timezone
 from port.port import CodeStore
+from typing import Optional
 
 
 class DynamoCodeStore(CodeStore):
@@ -14,6 +15,18 @@ class DynamoCodeStore(CodeStore):
         self.client.put_item(
             TableName=self.table_name,
             Item={'meet_id': {'S': meet_id}, 'creation_date': {'S': now}})
+
+    def set_phone_id(self, meet_id, phone_id):
+        self.client.put_item(
+            TableName=self.table_name,
+            Item={'meet_id': {'S': meet_id}, 'phone_id': {'S': phone_id}})
+
+    def get_phone_id(self, meet_id) -> Optional[str]:
+        result = self.client.get_item(
+            TableName=self.table_name,
+            Key={'meet_id': {'S': meet_id}}
+        )
+        return result["Item"].get("phone_id")
 
     def code_exists(self, meet_id) -> bool:
         result = self.client.get_item(

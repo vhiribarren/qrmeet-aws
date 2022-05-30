@@ -80,21 +80,8 @@ def mock_boto():
                 "AttributeName": "phone_id",
                 "KeyType": "HASH"
             }],
-            GlobalSecondaryIndexes=[{
-                "IndexName": "meet_id_index",
-                "KeySchema": [{
-                    "AttributeName": "meet_id",
-                    "KeyType": "HASH"
-                }],
-                "Projection": {
-                    "ProjectionType": "KEYS_ONLY"
-                }
-            }],
             AttributeDefinitions=[{
                 "AttributeName": "phone_id",
-                "AttributeType": "S"
-            }, {
-                "AttributeName": "meet_id",
                 "AttributeType": "S"
             }
             ])
@@ -122,4 +109,4 @@ def code_service(code_store):
 @pytest.fixture
 def user_service(code_service, user_store):
     from uc.user_registration import UserRegistrationService
-    return UserRegistrationService(code_service, user_store)
+    return UserRegistrationService(code_service, user_store, code_store)
