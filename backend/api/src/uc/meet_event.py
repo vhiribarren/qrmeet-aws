@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from port.port import MeetStore
+from port.port import MeetStore, RankingStore
 from uc.ranking import RankingService
 from uc.code_generation import CodeGeneratorService
 from uc.user_registration import UserRegistrationService
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True)
 class MeetInfo:
     other_name: str
     is_meet_complete: bool
@@ -26,7 +26,7 @@ class MeetService:
     class UnregisteredPhoneIdException(Exception):
         pass
 
-    def __init__(self, code_service: CodeGeneratorService, ranking_service: RankingService, user_service: UserRegistrationService, meet_store: MeetStore):
+    def __init__(self, code_service: CodeGeneratorService, user_service: UserRegistrationService, meet_store: MeetStore, ranking_store: RankingStore):
         pass
 
     def meet_other(self, from_phone_id: str, encounter_meet_id: str) -> MeetInfo:

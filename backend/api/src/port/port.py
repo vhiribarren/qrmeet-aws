@@ -54,6 +54,9 @@ class RankingStore:
         phone_id: str
         score: int
 
+    def increase_rank(self, phone_id_left: str, phone_id_right: str):
+        raise NotImplementedError()
+
     def score_for(self, phone_id: str) -> int:
         raise NotImplementedError()
 
