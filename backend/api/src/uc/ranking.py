@@ -8,11 +8,12 @@ class RankingInfo:
     count_half: int
 
 
-class PhoneIdNotFoundException(Exception):
-    pass
 
 
 class RankingService:
+
+    class PhoneIdNotFoundException(Exception):
+        pass
 
     def __init__(self, ranking_store: RankingStore):
         pass

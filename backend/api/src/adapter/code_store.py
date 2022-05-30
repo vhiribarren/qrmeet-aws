@@ -17,6 +17,8 @@ class DynamoCodeStore(CodeStore):
             Item={'meet_id': {'S': meet_id}, 'creation_date': {'S': now}})
 
     def set_phone_id(self, meet_id, phone_id):
+        if not self.code_exists(meet_id):
+            raise CodeStore.CodeDoesNotExistException()
         self.client.put_item(
             TableName=self.table_name,
             Item={'meet_id': {'S': meet_id}, 'phone_id': {'S': phone_id}})

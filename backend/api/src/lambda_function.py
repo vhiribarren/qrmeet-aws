@@ -6,7 +6,7 @@ import utils
 from lambdarest import lambda_handler
 
 from uc.code_generation import CodeGeneratorService
-from uc.user_registration import UserRegistrationService, PhoneIdNotFoundException, InvalidMeetIdException
+from uc.user_registration import UserRegistrationService
 from adapter.code_store import DynamoCodeStore
 from adapter.user_store import DynamoUserStore
 
@@ -68,9 +68,9 @@ def register_name(event):
     try:
         phone_id = USER_SERVICE.register_user(request["meet_id"], request["username"])
         return { "phone_id": phone_id}
-    except InvalidMeetIdException:
+    except UserRegistrationService.InvalidMeetIdException:
         return "Bad parameter value", 400
-    except PhoneIdNotFoundException:
+    except UserRegistrationService.PhoneIdNotFoundException:
         return "Bad parameter value", 404
 
 
@@ -82,7 +82,7 @@ def update_name(event):
     try:
         USER_SERVICE.update_user(request["phone_id"], request["username"])
         return
-    except PhoneIdNotFoundException:
+    except UserRegistrationService.PhoneIdNotFoundException:
         return "Bad parameter value", 404
 
 

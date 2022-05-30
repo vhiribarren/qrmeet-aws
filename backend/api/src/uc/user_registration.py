@@ -4,15 +4,13 @@ from port.port import UserStore, CodeStore
 from uc.code_generation import CodeGeneratorService
 
 
-class PhoneIdNotFoundException(Exception):
-    pass
-
-
-class InvalidMeetIdException(Exception):
-    pass
-
-
 class UserRegistrationService:
+
+    class PhoneIdNotFoundException(Exception):
+        pass
+
+    class InvalidMeetIdException(Exception):
+        pass
 
     def __init__(self, code_service: CodeGeneratorService, user_store: UserStore, code_store: CodeStore):
         self.code_service = code_service
@@ -21,9 +19,9 @@ class UserRegistrationService:
 
     def register_user(self, meet_id: str, username: str) -> str:
         if not self.code_service.check_meet_id_validity(meet_id):
-            raise InvalidMeetIdException("MeetId is invalid")
+            raise self.InvalidMeetIdException("MeetId is invalid")
         if self.code_store.get_phone_id(meet_id):
-            raise InvalidMeetIdException("MeetId is already registered to someone else")
+            raise self.InvalidMeetIdException("MeetId is already registered to someone else")
         phone_id = self._generate_phone_id()
         self.code_store.set_phone_id(meet_id, phone_id)
         self.user_store.register_user(phone_id, meet_id, username)
@@ -31,7 +29,7 @@ class UserRegistrationService:
 
     def update_user(self, phone_id: str, new_name: str):
         if not self.user_exists(phone_id):
-            raise PhoneIdNotFoundException()
+            raise self.PhoneIdNotFoundException()
         self.user_store.update_user_name(phone_id, new_name)
 
     def user_exists(self, phone_id: str) -> bool:
