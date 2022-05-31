@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 
 
 class CodeStore:
@@ -47,6 +47,9 @@ class UserStore:
     def update_user_name(self, phone_id: str, username: str):
         raise NotImplementedError()
 
+    def get_username(self, phone_id: str) -> Optional[str]:
+        raise NotImplementedError()
+
 
 class MeetStore:
 
@@ -86,5 +89,5 @@ class RankingStore:
     def score_for(self, phone_id: str) -> Score:
         raise NotImplementedError()
 
-    def all_scores(self) -> [Score]:
+    def all_scores(self) -> List[Score]:
         raise NotImplementedError()

@@ -151,9 +151,9 @@ def meet_service(code_service, code_store, user_service, meet_store, ranking_sto
 
 
 @pytest.fixture
-def ranking_service(code_service, user_service, meet_store, ranking_store):
+def ranking_service(ranking_store, user_store):
     from uc.ranking import RankingService
-    return RankingService(ranking_store)
+    return RankingService(ranking_store, user_store)
 
 
 @dataclass

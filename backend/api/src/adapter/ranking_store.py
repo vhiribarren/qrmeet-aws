@@ -1,3 +1,5 @@
+from typing import List
+
 import boto3
 from boto3.dynamodb.conditions import Attr
 
@@ -49,7 +51,7 @@ class DynamoRankingStore(RankingStore):
             return RankingStore.Score(phone_id)
         return RankingStore.Score(phone_id, int(item["score_full"]), int(item["score_half"]))
 
-    def all_scores(self) -> [RankingStore.Score]:
+    def all_scores(self) -> List[RankingStore.Score]:
         result = self.table.scan()
         items = result["Items"]
         return [

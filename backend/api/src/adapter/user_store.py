@@ -1,3 +1,5 @@
+from typing import Optional
+
 import boto3
 from boto3.dynamodb.conditions import Attr
 from botocore.exceptions import ClientError
@@ -30,6 +32,14 @@ class DynamoUserStore(UserStore):
             Key={'phone_id': phone_id}
         )
         return "Item" in result
+
+    def get_username(self, phone_id: str) -> Optional[str]:
+        result = self.table.get_item(
+            Key={'phone_id': phone_id}
+        )
+        if "Item" not in result:
+            return None
+        return result["Item"]["username"]
 
     def update_user_name(self, phone_id: str, username: str):
         try:
