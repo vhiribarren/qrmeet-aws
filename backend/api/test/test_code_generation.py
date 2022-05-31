@@ -36,9 +36,9 @@ def test_forged_meet_id_is_invalid(code_service, meet_id):
 
 @pytest.mark.parametrize("code_count", [1, 10, 100])
 def test_generated_meet_id_with_service_is_referenced_and_valid(code_service, code_store, code_count):
-    assert code_store.count_codes() == 0
+    assert code_store._count_codes() == 0
     result = code_service.generate_meet_urls(code_count)
-    assert code_store.count_codes() == code_count
+    assert code_store._count_codes() == code_count
     for url in result:
         meet_id = code_service.meet_id_from_url(url)
         assert code_service.check_meet_id_validity(meet_id)
@@ -47,7 +47,7 @@ def test_generated_meet_id_with_service_is_referenced_and_valid(code_service, co
 
 
 def test_valid_code_not_registered_is_invalid(code_service, code_store):
-    assert code_store.count_codes() == 0
+    assert code_store._count_codes() == 0
     meet_id = code_service._generate_meet_id()
     assert not code_service.check_meet_id_validity(meet_id)
 
@@ -61,7 +61,7 @@ def test_valid_api_qrcode_generation(api_get, code_service, code_store):
     body = json.loads(result["body"])
     assert isinstance(body, list)
     assert len(body) == 1
-    assert code_store.count_codes() == 1
+    assert code_store._count_codes() == 1
     assert code_service.check_meet_url_validity(body[0])
 
 
@@ -82,11 +82,11 @@ def test_invalid_api_qrcode_generation_with_excessive_count(api_get, code_store,
     result = api_get(f"{API_GENERATE}?count={count}")
     print(result)
     assert result["statusCode"] == 400
-    assert code_store.count_codes() == 0
+    assert code_store._count_codes() == 0
 
 
 @pytest.mark.parametrize("count", ["foobar", "-1", 0])
 def test_invalid_api_qrcode_generation_with_invalid_count(api_get, code_store, count):
     result = api_get(f"{API_GENERATE}?count={count}")
     assert result["statusCode"] == 400
-    assert code_store.count_codes() == 0
+    assert code_store._count_codes() == 0

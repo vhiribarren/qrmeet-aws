@@ -27,7 +27,7 @@ MEET_STORE = DynamoMeetStore(USER_STORE_TABLE_NAME)
 RANK_STORE = DynamoRankingStore(RANK_STORE_TABLE_NAME)
 CODE_SERVICE = CodeGeneratorService(MEET_URL_PREFIX, CODE_STORE)
 USER_SERVICE = UserRegistrationService(CODE_SERVICE, USER_STORE, CODE_STORE)
-MEET_SERVICE = MeetService(CODE_SERVICE, USER_SERVICE, MEET_STORE, RANK_STORE)
+MEET_SERVICE = MeetService(CODE_SERVICE, CODE_STORE, USER_SERVICE, MEET_STORE, RANK_STORE)
 RANK_SERVICE = RankingService(RANK_STORE)
 
 MAX_CODE_GENERATION_COUNT = 100
@@ -51,7 +51,16 @@ def meet_event(event, meet_param):
 
 @lambda_handler.handle("post", path="/meet")
 def meet_event(event):
-    pass
+    body = json.loads(event["body"])
+    try:
+        score = MEET_SERVICE.meet_other(body["from_phone_id"], body["encounter_meet_id"])
+    except MeetService.DuplicateMeetException as e:
+        return "Already scanned", 400
+    except MeetService.UnregisteredPhoneIdException as e:
+        return "Your phone is not yet registered", 400
+    except MeetService.UnregisteredMeetIdException as e:
+        return "QR code not yet registered", 400
+    return score.to_json()
 
 
 @lambda_handler.handle("get", path="/api/generate")

@@ -1,13 +1,14 @@
 from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 from port.port import  RankingStore
 
+
+@dataclass_json
 @dataclass(frozen=True)
 class RankingInfo:
-    name: str
-    count_full: int
-    count_half: int
-
-
+    username: str
+    score_full: int
+    score_half: int
 
 
 class RankingService:

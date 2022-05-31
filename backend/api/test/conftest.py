@@ -19,8 +19,11 @@ MEET_URL_PREFIX = "https://example.com/meet"
 MEET_REDIRECT_URL = "https://example.com/"
 
 @pytest.fixture
-def handler():
-    from lambda_function import lambda_handler
+def handler(monkeypatch):
+    from lambdarest import create_lambda_handler
+    # Monkeypatch/disable default error handling function, which convert error to 500 by default
+    monkeypatch.setattr("lambdarest.lambda_handler", create_lambda_handler(error_handler=None))
+    from lambda_function import  lambda_handler
     return lambda_handler
 
 
@@ -89,6 +92,18 @@ def mock_boto():
                 "AttributeType": "S"
             }
             ])
+        dynamo.create_table(
+            TableName=DYNAMO_TABLENAME_RANK,
+            BillingMode="PAY_PER_REQUEST",
+            KeySchema=[{
+                "AttributeName": "phone_id",
+                "KeyType": "HASH"
+            }],
+            AttributeDefinitions=[{
+                "AttributeName": "phone_id",
+                "AttributeType": "S"
+            }
+            ])
         yield
 
 
@@ -129,9 +144,15 @@ def user_service(code_service, user_store, code_store):
 
 
 @pytest.fixture
-def meet_service(code_service, user_service, meet_store, ranking_store):
+def meet_service(code_service, code_store, user_service, meet_store, ranking_store):
     from uc.meet_event import MeetService
-    return MeetService(code_service, user_service, meet_store, ranking_store)
+    return MeetService(code_service, code_store, user_service, meet_store, ranking_store)
+
+
+@pytest.fixture
+def ranking_service(code_service, user_service, meet_store, ranking_store):
+    from uc.ranking import RankingService
+    return RankingService(ranking_store)
 
 
 @dataclass

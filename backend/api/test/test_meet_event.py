@@ -22,31 +22,34 @@ def test_api_meet_post_event_with_registered_phone_and_meet_id_valid(api_post, n
     user_2 = new_user("user2")
     assert not meet_store.check_if_already_met(user_1.phone_id, user_2.meet_id)
     meet_event = {
-        "meet_id": user_2.meet_id,
-        "phone_id": user_1.phone_id,
+        "encounter_meet_id": user_2.meet_id,
+        "from_phone_id": user_1.phone_id,
     }
-    result = api_post("API_MEET", json.dumps(meet_event))
+    result = api_post(API_MEET, json.dumps(meet_event))
     assert result["statusCode"] == 200
     assert not meet_store.check_if_already_met(user_1.phone_id, user_2.meet_id)
+    body = json.loads(result["body"])
+    assert body["score_full"] == 0
+    assert body["score_half"] == 1
 
 
 def test_api_meet_post_event_without_registered_phone_id_is_invalid(api_post, new_user):
     user_1 = new_user("user1")
     meet_event = {
-        "meet_id": user_1.meet_id,
-        "phone_id": "any-phone-id",
+        "encounter_meet_id": user_1.meet_id,
+        "from_phone_id": "any-phone-id",
     }
-    result = api_post("API_MEET", json.dumps(meet_event))
+    result = api_post(API_MEET, json.dumps(meet_event))
     assert result["statusCode"] == 400
 
 
 def test_api_meet_post_event_without_registered_meet_id_is_invalid(api_post, new_user):
     user_1 = new_user("user1")
     meet_event = {
-        "meet_id": user_1.meet_id,
-        "phone_id": "any-meet-id",
+        "encounter_meet_id": "any-meet-id",
+        "from_phone_id": user_1.phone_id,
     }
-    result = api_post("API_MEET", json.dumps(meet_event))
+    result = api_post(API_MEET, json.dumps(meet_event))
     assert result["statusCode"] == 400
 
 
@@ -54,16 +57,16 @@ def test_api_meet_post_event_already_done_is_invalid(api_post, new_user):
     user_1 = new_user("user1")
     user_2 = new_user("user2")
     meet_event = {
-        "meet_id": user_2.meet_id,
-        "phone_id": user_1.phone_id,
+        "encounter_meet_id": user_2.meet_id,
+        "from_phone_id": user_1.phone_id,
     }
-    result = api_post("API_MEET", json.dumps(meet_event))
+    result = api_post(API_MEET, json.dumps(meet_event))
     assert result["statusCode"] == 200
-    result = api_post("API_MEET", json.dumps(meet_event))
+    result = api_post(API_MEET, json.dumps(meet_event))
     assert result["statusCode"] == 400
 
 
-def test_api_double_meet_event_must_increase_overall_score():
+def test_api_double_meet_event_must_increase_overall_score_and_decrease_half_score():
     assert False
 
 
