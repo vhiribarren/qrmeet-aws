@@ -33,16 +33,10 @@ class DynamoRankingStore(RankingStore):
         return RankingStore.Score(phone_id, int(item["score_full"]), int(item["score_half"]))
 
     def convert_half_to_full_score(self, phone_id: str) -> RankingStore.Score:
-        self.table.update_item(
-            Key={'phone_id': phone_id},
-            UpdateExpression="SET score_half = score_half - :v ADD score_full :f",
-            ExpressionAttributeValues={":h": 1, ":f": 1},
-            ConditionExpression=Attr("phone_id").exists(),
-        )
         result = self.table.update_item(
             Key={'phone_id': phone_id},
-            UpdateExpression="SET score_half = score_half - :v",
-            ExpressionAttributeValues={":v": 1},
+            UpdateExpression="SET score_half = score_half - :h ADD score_full :f",
+            ExpressionAttributeValues={":h": 1, ":f": 1},
             ConditionExpression=Attr("phone_id").exists(),
             ReturnValues="ALL_NEW",
         )

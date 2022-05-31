@@ -17,10 +17,10 @@ class RankingService:
         pass
 
     def __init__(self, ranking_store: RankingStore):
-        pass
+        self.ranking_store = ranking_store
 
-    def global_ranking(self, max: int = 10) -> [RankingInfo]:
+    def global_ranking(self, max_count: int = 10) -> [RankingInfo]:
         pass
 
     def user_ranking(self, phone_id: str) -> RankingInfo:
-        pass
+        return self.ranking_store.score_for(phone_id)
