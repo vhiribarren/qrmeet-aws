@@ -1,6 +1,8 @@
 from dataclasses import dataclass
+
 from dataclasses_json import dataclass_json
-from port.port import  RankingStore
+
+from port.port import RankingStore
 
 
 @dataclass_json
@@ -12,7 +14,6 @@ class RankingInfo:
 
 
 class RankingService:
-
     class PhoneIdNotFoundException(Exception):
         pass
 

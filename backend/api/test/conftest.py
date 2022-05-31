@@ -1,11 +1,11 @@
 import os
 import sys
-from urllib.parse import urlparse, parse_qs
-from os.path import abspath, join, dirname
 from dataclasses import dataclass
+from os.path import abspath, join, dirname
+from urllib.parse import urlparse, parse_qs
 
-import pytest
 import boto3
+import pytest
 from moto import mock_dynamodb
 
 sys.path.insert(0, abspath((join(dirname(__file__), '../src'))))
@@ -18,12 +18,13 @@ DYNAMO_TABLENAME_RANK = "test-table-ranking"
 MEET_URL_PREFIX = "https://example.com/meet"
 MEET_REDIRECT_URL = "https://example.com/"
 
+
 @pytest.fixture
 def handler(monkeypatch):
     from lambdarest import create_lambda_handler
     # Monkeypatch/disable default error handling function, which convert error to 500 by default
     monkeypatch.setattr("lambdarest.lambda_handler", create_lambda_handler(error_handler=None))
-    from lambda_function import  lambda_handler
+    from lambda_function import lambda_handler
     return lambda_handler
 
 
@@ -168,4 +169,5 @@ def new_user(user_service, code_service):
         meet_id = code_service.meet_id_from_url(code_service.generate_meet_urls()[0])
         phone_id = user_service.register_user(meet_id, username)
         return User(phone_id=phone_id, meet_id=meet_id, username=username)
+
     return generate_user

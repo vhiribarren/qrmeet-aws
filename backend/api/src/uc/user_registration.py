@@ -5,7 +5,6 @@ from uc.code_generation import CodeGeneratorService
 
 
 class UserRegistrationService:
-
     class PhoneIdNotFoundException(Exception):
         pass
 

@@ -1,10 +1,9 @@
+from dataclasses import dataclass
 from enum import Enum
 
-
-from dataclasses import dataclass
 from dataclasses_json import dataclass_json
+
 from port.port import MeetStore, RankingStore, CodeStore
-from uc.ranking import RankingService
 from uc.code_generation import CodeGeneratorService
 from uc.user_registration import UserRegistrationService
 
@@ -13,6 +12,7 @@ class MeetResult(Enum):
     ACCEPTED = "accepted"
     DUPLICATED = "duplicated"
     UNREGISTERED = "unregistered"
+
 
 @dataclass_json
 @dataclass(frozen=True)
@@ -24,7 +24,6 @@ class MeetInfo:
 
 
 class MeetService:
-
     class UnregisteredMeetIdException(Exception):
         pass
 
@@ -34,7 +33,8 @@ class MeetService:
     class InvalidMeetIdException(Exception):
         pass
 
-    def __init__(self, code_service: CodeGeneratorService, code_store: CodeStore, user_service: UserRegistrationService, meet_store: MeetStore, ranking_store: RankingStore):
+    def __init__(self, code_service: CodeGeneratorService, code_store: CodeStore, user_service: UserRegistrationService,
+                 meet_store: MeetStore, ranking_store: RankingStore):
         self.code_service = code_service
         self.code_store = code_store
         self.user_service = user_service

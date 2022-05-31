@@ -2,7 +2,6 @@ import json
 
 from urllib.parse import urlparse, parse_qs
 
-
 API_MEET = "/meet"
 
 
@@ -74,7 +73,8 @@ def test_api_meet_post_event_already_done_is_invalid(api_post, new_user):
     assert body["status"] == "duplicated"
 
 
-def test_api_meet_increase_half_score_and_mutual_meet_increase_overall_score_and_decrease_half_score(api_post, new_user, ranking_service):
+def test_api_meet_increase_half_score_and_mutual_meet_increase_overall_score_and_decrease_half_score(api_post, new_user,
+                                                                                                     ranking_service):
     user_1 = new_user("user1")
     user_2 = new_user("user2")
     score_1 = ranking_service.user_ranking(user_1.phone_id)

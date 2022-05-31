@@ -86,5 +86,5 @@ class RankingStore:
     def score_for(self, phone_id: str) -> Score:
         raise NotImplementedError()
 
-    def best_scores(self, size: int = 10) -> [Score]:
+    def all_scores(self) -> [Score]:
         raise NotImplementedError()

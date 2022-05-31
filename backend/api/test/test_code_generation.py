@@ -1,6 +1,6 @@
-import pytest
 import json
 
+import pytest
 
 API_GENERATE = "/api/generate"
 
@@ -66,7 +66,7 @@ def test_valid_api_qrcode_generation(api_get, code_service, code_store):
 
 
 @pytest.mark.parametrize("count", [1, 5, 10, 99])
-def test_valid_api_qrcode_generation_with_count(api_get, code_service,code_store, count):
+def test_valid_api_qrcode_generation_with_count(api_get, code_service, code_store, count):
     result = api_get(f"{API_GENERATE}?count={count}")
     assert result["statusCode"] == 200
     print(result)

@@ -1,19 +1,17 @@
-import os
 import json
-import uuid
-import utils
 import logging
+import os
 
 from lambdarest import lambda_handler
 
-from uc.code_generation import CodeGeneratorService
-from uc.user_registration import UserRegistrationService
-from uc.meet_event import MeetService
-from uc.ranking import RankingService
 from adapter.code_store import DynamoCodeStore
-from adapter.user_store import DynamoUserStore
 from adapter.meet_store import DynamoMeetStore
 from adapter.ranking_store import DynamoRankingStore
+from adapter.user_store import DynamoUserStore
+from uc.code_generation import CodeGeneratorService
+from uc.meet_event import MeetService
+from uc.ranking import RankingService
+from uc.user_registration import UserRegistrationService
 
 MEET_REDIRECT_URL = os.environ['MEET_REDIRECT_URL']
 
@@ -65,7 +63,7 @@ def meet_event(event):
     except MeetService.UnregisteredPhoneIdException:
         logger.warning(f"meet/post: phone_id: {from_phone_id} does not exist in the database")
         return "Bad request", 400
-    except MeetService.UnregisteredMeetIdException as e:
+    except MeetService.UnregisteredMeetIdException:
         logger.warning(f"meet/post: phone_id: {from_phone_id} tried to scan an invalid meet_id: {encounter_meet_id}")
         return "Bad request", 400
     return score.to_json()
@@ -99,7 +97,7 @@ def register_name(event):
     try:
         logger.debug(f"register/new: {username} is registering for meet_id: {meet_id}")
         phone_id = USER_SERVICE.register_user(meet_id, username)
-        return { "phone_id": phone_id }
+        return {"phone_id": phone_id}
     except UserRegistrationService.InvalidMeetIdException as e:
         logger.warning(f"register/new: meet_id: {meet_id} not valid, not registering, reason: {str(e)}")
         return "Bad request", 400
