@@ -26,7 +26,9 @@ def test_api_meet_post_event_with_registered_phone_and_meet_id_valid(api_post, n
         "from_phone_id": user_1.phone_id,
     }
     result = api_post(API_MEET, json.dumps(meet_event))
+    body = json.loads(result["body"])
     assert result["statusCode"] == 200
+    assert body["status"] == "accepted"
     assert not meet_store.check_if_already_met(user_1.phone_id, user_2.meet_id)
     body = json.loads(result["body"])
     assert body["score_full"] == 0
@@ -50,7 +52,9 @@ def test_api_meet_post_event_without_registered_meet_id_is_invalid(api_post, new
         "from_phone_id": user_1.phone_id,
     }
     result = api_post(API_MEET, json.dumps(meet_event))
-    assert result["statusCode"] == 400
+    body = json.loads(result["body"])
+    assert result["statusCode"] == 200
+    assert body["status"] == "unregistered"
 
 
 def test_api_meet_post_event_already_done_is_invalid(api_post, new_user):
@@ -61,9 +65,13 @@ def test_api_meet_post_event_already_done_is_invalid(api_post, new_user):
         "from_phone_id": user_1.phone_id,
     }
     result = api_post(API_MEET, json.dumps(meet_event))
+    body = json.loads(result["body"])
     assert result["statusCode"] == 200
+    assert body["status"] == "accepted"
     result = api_post(API_MEET, json.dumps(meet_event))
-    assert result["statusCode"] == 400
+    body = json.loads(result["body"])
+    assert result["statusCode"] == 200
+    assert body["status"] == "duplicated"
 
 
 def test_api_double_meet_event_must_increase_overall_score_and_decrease_half_score():

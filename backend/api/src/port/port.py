@@ -71,8 +71,8 @@ class RankingStore:
     @dataclass(frozen=True)
     class Score:
         phone_id: str
-        score_full: int
-        score_half: int
+        score_full: int = 0
+        score_half: int = 0
 
     def add_half_score(self, phone_id: str) -> Score:
         raise NotImplementedError()
@@ -83,7 +83,7 @@ class RankingStore:
     def convert_half_to_full_score(self, phone_id: str) -> Score:
         raise NotImplementedError()
 
-    def score_for(self, phone_id: str) -> Optional[Score]:
+    def score_for(self, phone_id: str) -> Score:
         raise NotImplementedError()
 
     def best_scores(self, size: int = 10) -> [Score]:

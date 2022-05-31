@@ -49,13 +49,13 @@ class DynamoRankingStore(RankingStore):
         item = result["Attributes"]
         return RankingStore.Score(phone_id, int(item["score_full"]), int(item["score_half"]))
 
-    def score_for(self, phone_id: str) -> Optional[RankingStore.Score]:
+    def score_for(self, phone_id: str) -> RankingStore.Score:
         result = self.table.get_item(
             Key={'phone_id': phone_id}
         )
         item = result.get("Item")
         if item is None:
-            return None
+            return RankingStore.Score(phone_id)
         return RankingStore.Score(phone_id, int(item["score_full"]), int(item["score_half"]))
 
     def all_scores(self) -> [RankingStore.Score]:

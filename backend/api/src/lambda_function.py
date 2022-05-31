@@ -2,6 +2,7 @@ import os
 import json
 import uuid
 import utils
+import logging
 
 from lambdarest import lambda_handler
 
@@ -32,19 +33,21 @@ RANK_SERVICE = RankingService(RANK_STORE)
 
 MAX_CODE_GENERATION_COUNT = 100
 
+logger = logging.getLogger()
+
 
 @lambda_handler.handle("get", path="/api")
 def author(event):
     return "Powered by TEX Team technology"
 
 
-@lambda_handler.handle("get", path="/meet/<meet_param>")
-def meet_event(event, meet_param):
-    print(f"Someone scanned {meet_param} but no 'from', redirecting...")
+@lambda_handler.handle("get", path="/meet/<meet_id>")
+def meet_event(event, meet_id):
+    logger.debug(f"{meet_id} was scanned! Redirecting user to app...")
     return {
         'statusCode': 302,
         'headers': {
-            'Location': f"{MEET_REDIRECT_URL}?meet_id={meet_param}",
+            'Location': f"{MEET_REDIRECT_URL}?meet_id={meet_id}",
         },
     }
 
@@ -52,14 +55,19 @@ def meet_event(event, meet_param):
 @lambda_handler.handle("post", path="/meet")
 def meet_event(event):
     body = json.loads(event["body"])
+    from_phone_id = body.get("from_phone_id")
+    encounter_meet_id = body.get("encounter_meet_id")
+    if from_phone_id is None or encounter_meet_id is None:
+        logger.warning(f"meet/post: bad formatted body, missing from_phone_id or encounter_meet_id: {event['body']}")
+        return "Bad request", 400
     try:
         score = MEET_SERVICE.meet_other(body["from_phone_id"], body["encounter_meet_id"])
-    except MeetService.DuplicateMeetException as e:
-        return "Already scanned", 400
-    except MeetService.UnregisteredPhoneIdException as e:
-        return "Your phone is not yet registered", 400
+    except MeetService.UnregisteredPhoneIdException:
+        logger.warning(f"meet/post: phone_id: {from_phone_id} does not exist in the database")
+        return "Bad request", 400
     except MeetService.UnregisteredMeetIdException as e:
-        return "QR code not yet registered", 400
+        logger.warning(f"meet/post: phone_id: {from_phone_id} tried to scan an invalid meet_id: {encounter_meet_id}")
+        return "Bad request", 400
     return score.to_json()
 
 
@@ -70,9 +78,12 @@ def generate_code(event):
     try:
         count = int(count)
     except ValueError:
-        return "Bad parameter value", 400
+        logger.warning(f"generate: {count} parameter is not a number")
+        return "Bad request", 400
     if count >= MAX_CODE_GENERATION_COUNT or count < 1:
-        return "Bad parameter value", 400
+        logger.warning(f"generate: {count} parameter is not in the right range")
+        return "Bad request", 400
+    logger.debug(f"generate: {count} codes were asked")
     urls = CODE_SERVICE.generate_meet_urls(count)
     return urls
 
@@ -80,27 +91,35 @@ def generate_code(event):
 @lambda_handler.handle("post", path="/api/register/new")
 def register_name(event):
     request = json.loads(event["body"])
-    if "meet_id" not in request or "username" not in request:
-        return "Bad parameter value", 400
+    meet_id = request.get("meet_id")
+    username = request.get("username")
+    if meet_id is None or username is None:
+        logger.warning(f"register/new: bad formatted body, missing phone_id or username: {event['body']}")
+        return "Bad request", 400
     try:
-        phone_id = USER_SERVICE.register_user(request["meet_id"], request["username"])
-        return { "phone_id": phone_id}
-    except UserRegistrationService.InvalidMeetIdException:
-        return "Bad parameter value", 400
-    except UserRegistrationService.PhoneIdNotFoundException:
-        return "Bad parameter value", 404
+        logger.debug(f"register/new: {username} is registering for meet_id: {meet_id}")
+        phone_id = USER_SERVICE.register_user(meet_id, username)
+        return { "phone_id": phone_id }
+    except UserRegistrationService.InvalidMeetIdException as e:
+        logger.warning(f"register/new: meet_id: {meet_id} not valid, not registering, reason: {str(e)}")
+        return "Bad request", 400
 
 
 @lambda_handler.handle("post", path="/api/register/update")
 def update_name(event):
     request = json.loads(event["body"])
-    if "phone_id" not in request or "username" not in request:
-        return "Bad parameter value", 400
+    phone_id = request.get("phone_id")
+    username = request.get("username")
+    if phone_id is None or username is None:
+        logger.warning(f"register/update: bad formatted body, missing phone_id or username: {event['body']}")
+        return "Bad request", 400
     try:
-        USER_SERVICE.update_user(request["phone_id"], request["username"])
+        logger.debug(f"register/update: new name: {username} for phone_id: {phone_id}")
+        USER_SERVICE.update_user(phone_id, username)
         return
     except UserRegistrationService.PhoneIdNotFoundException:
-        return "Bad parameter value", 404
+        logger.warning(f"register/update: error, phone_id does not exist: {phone_id}")
+        return "Bad request", 404
 
 
 @lambda_handler.handle("get", path="/api/all_ranking")
