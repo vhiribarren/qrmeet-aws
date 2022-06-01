@@ -145,9 +145,9 @@ def user_service(code_service, user_store, code_store):
 
 
 @pytest.fixture
-def meet_service(code_service, code_store, user_service, meet_store, ranking_store):
+def meet_service(code_service, user_service, meet_store, ranking_store):
     from uc.meet_event import MeetService
-    return MeetService(code_service, code_store, user_service, meet_store, ranking_store)
+    return MeetService(code_service, user_service, meet_store, ranking_store)
 
 
 @pytest.fixture

@@ -34,6 +34,22 @@ def test_api_meet_post_event_with_registered_phone_and_meet_id_valid(api_post, n
     assert body["score_half"] == 1
 
 
+def test_api_meet_post_with_personal_qrcode_is_special_and_not_increment_score(api_post, new_user, meet_store):
+    user_1 = new_user("user1")
+    meet_event = {
+        "encounter_meet_id": user_1.meet_id,
+        "from_phone_id": user_1.phone_id,
+    }
+    result = api_post(API_MEET, json.dumps(meet_event))
+    body = json.loads(result["body"])
+    assert result["statusCode"] == 200
+    assert body["status"] == "owner"
+    assert not meet_store.check_if_already_met(user_1.phone_id, user_1.meet_id)
+    body = json.loads(result["body"])
+    assert body["score_full"] == 0
+    assert body["score_half"] == 0
+
+
 def test_api_meet_post_event_without_registered_phone_id_is_invalid(api_post, new_user):
     user_1 = new_user("user1")
     meet_event = {
